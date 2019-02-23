@@ -9,13 +9,22 @@
 # (this script won't capture LBs inside the root compartment)
 #
 
+printTitle() {
+	title=$1; str=-; num="80"
+	titlelength=`echo -n $title | wc -c`
+	repeat=$(expr $num - $titlelength)
+	v=$(printf "%-${repeat}s" "$str")
+	printf "$title"
+	echo "${v// /$str}"
+}
+
 for compartmentID in `oci iam compartment list --all | jq -r '.data[] | .id +" "+."lifecycle-state"' | grep "ACTIVE" | awk '{print $1}'`
 do
     compartmentID=`oci iam compartment get --compartment-id $compartmentID | jq -r '[.data.id]|.[]'`
     compartmentName=`oci iam compartment get --compartment-id $compartmentID | jq -r '[.data.name]|.[]'`
     if [ `oci lb load-balancer list -c $compartmentID | wc -l` -gt 0 ]
     then
-        echo "COMPARTMENT $compartmentName ---------------------------------------"
+        printTitle "COMPARTMENT $compartmentName"
         echo ">> Policy"
         oci lb policy list -c $compartmentID
         echo ">> Protocol"
@@ -25,7 +34,7 @@ do
         for lbID in `oci lb load-balancer list -c $compartmentID | jq -r '[.data[].id]|.[]'`
         do
             loadBalancerDisplayName=`oci lb load-balancer get --load-balancer-id $lbID | jq -r '[.data."display-name"]|.[]'`
-            echo ">> Load Balancer $loadBalancerDisplayName ---------------------------------------"
+            printTitle "Load Balancer $loadBalancerDisplayName"
             echo ">> LB Details"
             oci lb load-balancer get --load-balancer-id $lbID
             echo ">> Hostname"
