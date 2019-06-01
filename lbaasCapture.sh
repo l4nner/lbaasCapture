@@ -9,6 +9,8 @@
 # (this script won't capture LBs inside the root compartment)
 #
 
+command -v oci >/dev/null 2>&1 || { echo >&2 "OCI CLI is not installed."; exit 1; }
+
 printTitle() {
 	title=$1; str=-; num="80"
 	titlelength=`echo -n $title | wc -c`
